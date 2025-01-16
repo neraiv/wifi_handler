@@ -1,12 +1,8 @@
 #include "neraiv_wifi_handler.h"
 
-WiFiHandler::WiFiHandler(const std::vector<WiFi_t*>& wifiList, bool wifi_required)
-        : wifiList_(wifiList), _WiFiRequired(wifi_required), lastScanTime(0), scanInterval(60000) {
-    WiFi.mode(WIFI_STA); // Set WiFi to station mode (WiFi client)
-}
+std::vector<int> WiFiHandler::searchWiFi() {
 
-
-bool WiFiHandler::searchIfOneOfKnownWiFiExists() {
+    std::vector<int> connectablesIndex;
     bool RETURN_VAL = false;
     int dBm = -150;
     

@@ -21,34 +21,71 @@ enum class WiFiError {
     CantRetrieveIpAddress
 };
 
+enum class WiFiHandelerConnectionMethod {
+    firstDiscovered,
+    byStrongest,
+    byPriority,
+    byLatency
+}
+
+enum class WiFiHandelerSearchMethod{
+    searchWhenDisconnected,
+    searchEverySearchInterval,
+    searchWhenBelowMinStrength,
+    searchWhenBelowMinLatency
+}
+
 class WiFi_t {
 public:
-    WiFi_t(const String& ssid, const String& password)
-        : ssid_(ssid), password_(password), priority(0), connectable(false) {}
+    WiFi_t(const String& ssid_, const String& password_, uint8_t priority_)
+        : ssid(ssid_), password(password_), priority(priority_), strength(0) , latency(0) {}
 
-    String ssid_;
-    String password_;
+    String ssid;
+    String password;
     uint8_t priority;
-    bool connectable;
+    int strength;
+    int latency;
 };
 
 class WiFiHandler {
 public:
-    WiFiHandler(const std::vector<WiFi_t*>& wifiList, bool wifi_required=true);
+    WiFiHandler(const std::vector<WiFi_t*>& wifiList,
+                WiFiHandelerConnectionMethod connectionMethod = WiFiHandelerConnectionMethod::firstDiscovered,
+                WiFiHandelerSearchMethod searchMethod = WiFiHandelerSearchMethod::searchWhenDisconnected,
+                unsigned long timeout = 0,
+                uint searchInterval = 5000,
+                int minStrength = 40,
+                uint minLatency = 0)
+        : wifiList(wifiList),
+          connectionMethod(connectionMethod),
+          searchMethod(searchMethod),
+          timeout(timeout),
+          searchInterval(searchInterval),
+          minStrength(minStrength),
+          minLatency(minLatency) {}
 
+    std::vector<WiFi_t*> wifiList;
+    
     bool connectWiFi();
-    bool searchIfOneOfKnownWiFiExists();
+    std::vector<int> searchWiFi();
+
+    std::vector<int> orderBy(std::vector<WiFi_t*> list = wifiList, WiFiHandelerConnectionMethod method = connectionMethod);
+
     bool handleWiFi();
 
-private:
-    void setPriorityFirst(uint8_t index);
+    WiFi_t* getCurrentWiFi();
 
-    std::vector<WiFi_t*> wifiList_;
+
+private:
     int _selected_wifi_index = 0;
     bool _WiFiRequired;
     
-    unsigned long lastScanTime;
-    const unsigned long scanInterval;
+    WiFiHandelerConnectionMethod connectionMethod;
+    WiFiHandelerSearchMethod searchMethod;
+    unsigned long timeout;
+    unsigned long searchInterval;
+    uint minStrength;
+    uint minLatency;
 };
 
 #endif // NERAIV_WIFI_HANDLER_H
